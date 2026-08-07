@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Flood Rescue Robot</title>
+    <!-- 1. Load Blockly -->
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    
+    <!-- 2. CSS Styling -->
+     <link rel="stylesheet" href="res/myStylesheet" type="text/css">
+    <style>
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+
+        <div id="controls-section">
+            <div id="blocklyDiv"></div>
+            <button class="run-btn" onclick="runCode()">Run Program</button>
+        </div>
+
+        <div id="game-section">
+            <div id="game-board">
+                <div id="robot">Robot</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Hidden Toolbox XML for Blockly -->
+    <xml id="toolbox" style="display: none">
+        <block type="robot_step"></block>
+        <block type="robot_turn"></block>
+        <block type="robot_drop"></block>
+    </xml>
+
+    <xml id="startBlocks" style="display: none">
+        <block type="robot_start" deletable="false" movable="false" x="50" y="50"></block>
+    </xml>
+
+    <!-- 3. JavaScript Logic -->
+    <script>
+        // ==========================================
+        // MAP AND ROBOT STATE
+        // ==========================================
+        const levelData = [
+            [0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0],
+            [0, 0, 1, 1, 2, 0],
+            [0, 0, 0, 0, 0, 0]
+        ];
+
+        //Initial Robot Location
+        initLocation = {x: 1, y: 1, direction: 90}
+    </script>
+    <script src="js/engine.js"></script>
+</body>
+</html>
