@@ -2,44 +2,23 @@
 // DRAW MAP ON SCREEN
 // ==========================================
 
+//Get level information
 const board = document.getElementById('game-board');
 const robotEl = document.getElementById('robot');
-const gridSize = levelData.length;
-const cellSize = board.offsetWidth / gridSize;
+
+let currentLevel = 0;
+let levelData;
+let initLocation;
+let gridSize;
+let cellSize;
 
 //Sounds preload
 const step_sfx = new Audio('res/step_sounds.mp3');
 const water_sfx = new Audio('res/water_splash.mp3');
 const win_sfx = new Audio('res/win_sound.mp3');
 
-
-// Set up CSS Grid columns/rows based on array size
-board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
-board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
-
-// Draw the map cells
-for (let y = 0; y < gridSize; y++) {
-    for (let x = 0; x < gridSize; x++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        if (levelData[y][x] === 0) { cell.classList.add('water'); cell.innerText = ''; }
-        if (levelData[y][x] === 1) { cell.classList.add('path'); cell.innerText = ''; }
-        if (levelData[y][x] === 2) { cell.classList.add('target'); cell.innerText = ''; }
-        board.appendChild(cell);
-    }
-}
-
-// Set initial robot state (Facing North 0 degrees)
 let robot = initLocation;
-robotEl.style.width = `${cellSize}px`;
-robotEl.style.height = `${cellSize}px`;
-
-function drawRobot() {
-    robotEl.style.left = `${robot.x * cellSize}px`;
-    robotEl.style.top = `${robot.y * cellSize}px`;
-    robotEl.style.transform = `rotate(${robot.direction}deg)`;
-}
-drawRobot();
+loadLevel(0);
 
 // ==========================================
 // BLOCKLY SETUP & DEFINITIONS
@@ -164,19 +143,15 @@ const firstCommandBlock = startBlock.getNextBlock();
                     return;  
                 }
                 if (levelData[nextY][nextX] === 0) {
-                    robotEl.classList.add('robot-drown'); // Sink into water!
-                    water_sfx.play();
+                    updateRobot(nextX, nextY, water_sfx, 'robot-drown')
+                    await sleep(500);
                     setTimeout(() => {
                         alert(" SPLASH! The robot drove into the floodwaters.");
                     }, 50)
                     return
                 }
-
-                robot.x = nextX;
-                robot.y = nextY;
-                step_sfx.play();
-                drawRobot();
-                await sleep(500); 
+                updateRobot(nextX, nextY, step_sfx, null);
+                await sleep(500);
             }
         } 
                 
@@ -186,6 +161,14 @@ const firstCommandBlock = startBlock.getNextBlock();
                 setTimeout(() => {
                     alert("SUCCESS! Supplies delivered!");
                 }, 50)
+                
+                currentLevel++;
+                    if (currentLevel < MapLevels.length) {
+                        loadLevel(currentLevel); // Loads the next map instantly!
+                    } else {
+                        alert("CONGRATULATIONS! You beat the entire game!");
+                    }
+
             } else {
                 alert("Dropped in the wrong place!");
                 return;
@@ -198,6 +181,7 @@ const firstCommandBlock = startBlock.getNextBlock();
 // ==========================================
 // EXTRA FUNCTION
 // ==========================================
+//Reset robot position
 function resetRobot() {
     robot = {...initLocation};
     
@@ -209,4 +193,61 @@ function resetRobot() {
     setTimeout(() => {
         robotEl.style.transition = 'all 0.4s ease-in-out';
     }, 50);
+}
+
+//Move Robot
+function updateRobot(targetX, targetY, sound, stateClass) {
+
+    robot.x = targetX;
+    robot.y = targetY;
+
+    if (sound !== null) {
+        sound.play();
+    }
+
+    if (stateClass !== null) {
+        robotEl.classList.add(stateClass);
+    }
+
+    drawRobot();
+}
+
+//Draw Map
+function loadLevel(levelIndex) {
+    currentLevel = levelIndex;
+    levelData = MapLevels[currentLevel].mapping;
+    initLocation = MapLevels[currentLevel].initial;
+    
+    gridSize = levelData.length;
+    cellSize = board.offsetWidth / gridSize;
+
+    robotEl.style.width = `${cellSize}px`;
+    robotEl.style.height = `${cellSize}px`;
+
+    board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+    board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+
+    const oldCells = board.querySelectorAll('.cell');
+    oldCells.forEach(cell => cell.remove());
+
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            if (levelData[y][x] === 0) cell.classList.add('water');
+            if (levelData[y][x] === 1) cell.classList.add('path');
+            if (levelData[y][x] === 2) cell.classList.add('target');
+            if (levelData[y][x] === 4) cell.classList.add('wall');
+
+            board.insertBefore(cell, robotEl); 
+        }
+    }
+    resetRobot();
+}
+
+//Draw Robot into map
+function drawRobot() {
+    robotEl.style.left = `${robot.x * cellSize}px`;
+    robotEl.style.top = `${robot.y * cellSize}px`;
+    robotEl.style.transform = `rotate(${robot.direction}deg)`;
 }
