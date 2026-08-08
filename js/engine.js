@@ -7,6 +7,12 @@ const robotEl = document.getElementById('robot');
 const gridSize = levelData.length;
 const cellSize = board.offsetWidth / gridSize;
 
+//Sounds preload
+const step_sfx = new Audio('res/step_sounds.mp3');
+const water_sfx = new Audio('res/water_splash.mp3');
+const win_sfx = new Audio('res/win_sound.mp3');
+
+
 // Set up CSS Grid columns/rows based on array size
 board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
 board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
@@ -74,7 +80,7 @@ Blockly.defineBlocksWithJsonArray([
 {
     "type": "robot_drop",
     "message0": "Drop Supplies ",
-    "previousStatement": null, "nextStatement": null, "colour": 120
+    "previousStatement": null, "colour": 120
     }
     ]);
 
@@ -84,7 +90,6 @@ scrollbars: true,
 trashcan: true
 });
 
-window.addEventListener('resize', false);
 window.addEventListener('resize', function() {
     Blockly.svgResize(workspace);
 });
@@ -119,15 +124,13 @@ const startBlocks = workspace.getBlocksByType('robot_start');
 const startBlock = startBlocks[0];
         
 const firstCommandBlock = startBlock.getNextBlock();
-// If no next command on start block
+    // If no next command on start block
     if (!firstCommandBlock) {
         alert("You need to snap some blocks to the START block first!");
         return;
     }
-
-    // Reset robot position
-    resetRobot()
-    await sleep(500); 
+    resetRobot();
+    await sleep(500);
 
     let commandQueue = [];
             
@@ -137,6 +140,7 @@ const firstCommandBlock = startBlock.getNextBlock();
     const compile = new Function('queue', codeString);
     compile(commandQueue);
 
+    let suscess = false;
     executionLoop: 
     for (let i = 0; i < commandQueue.length; i++) {
         const cmd = commandQueue[i];
@@ -154,16 +158,23 @@ const firstCommandBlock = startBlock.getNextBlock();
                 const nextY = robot.y - Math.round(Math.cos(rad));
                         
                 if (nextX < 0 || nextX >= gridSize || nextY < 0 || nextY >= gridSize || levelData[nextY][nextX] === 4) {
-                    alert("BUMP! The robot hit a solid wall.");
-                    break executionLoop; 
+                    setTimeout(() => {
+                        alert("BUMP! The robot hit a solid wall.");
+                    }, 50)
+                    return;  
                 }
                 if (levelData[nextY][nextX] === 0) {
-                    alert(" SPLASH! The robot drove into the floodwaters.");
-                    break executionLoop; 
+                    robotEl.classList.add('robot-drown'); // Sink into water!
+                    water_sfx.play();
+                    setTimeout(() => {
+                        alert(" SPLASH! The robot drove into the floodwaters.");
+                    }, 50)
+                    return
                 }
 
                 robot.x = nextX;
                 robot.y = nextY;
+                step_sfx.play();
                 drawRobot();
                 await sleep(500); 
             }
@@ -171,9 +182,13 @@ const firstCommandBlock = startBlock.getNextBlock();
                 
         else if (cmd.action === 'drop') {
             if (levelData[robot.y][robot.x] === 2) {
-                alert("SUCCESS! Supplies delivered!");
+                win_sfx.play();
+                setTimeout(() => {
+                    alert("SUCCESS! Supplies delivered!");
+                }, 50)
             } else {
                 alert("Dropped in the wrong place!");
+                return;
             }
         }
     }
@@ -185,11 +200,13 @@ const firstCommandBlock = startBlock.getNextBlock();
 // ==========================================
 function resetRobot() {
     robot = {...initLocation};
+    
+    robotEl.classList.remove('robot-crash', 'robot-drown');
         
     robotEl.style.transition = 'none';
     drawRobot();
         
     setTimeout(() => {
-    robotEl.style.transition = 'all 0.4s ease-in-out';
+        robotEl.style.transition = 'all 0.4s ease-in-out';
     }, 50);
 }
