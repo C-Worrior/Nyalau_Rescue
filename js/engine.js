@@ -13,9 +13,10 @@ let gridSize;
 let cellSize;
 
 //Sounds preload
-const step_sfx = new Audio('res/step_sounds.mp3');
-const water_sfx = new Audio('res/water_splash.mp3');
-const win_sfx = new Audio('res/win_sound.mp3');
+const step_sfx = new Audio('res/sfx/step_sounds.mp3');
+const water_sfx = new Audio('res/sfx/water_splash.mp3');
+const win_sfx = new Audio('res/sfx/win_sound.mp3');
+const hit_sfx = new Audio('res/sfx/hit_sounds.mp3');
 
 let robot = initLocation;
 loadLevel(0);
@@ -137,6 +138,7 @@ const firstCommandBlock = startBlock.getNextBlock();
                 const nextY = robot.y - Math.round(Math.cos(rad));
                         
                 if (nextX < 0 || nextX >= gridSize || nextY < 0 || nextY >= gridSize || levelData[nextY][nextX] === 4) {
+                    hit_sfx.play();
                     setTimeout(() => {
                         alert("BUMP! The robot hit a solid wall.");
                     }, 50)
@@ -151,7 +153,17 @@ const firstCommandBlock = startBlock.getNextBlock();
                     return
                 }
                 updateRobot(nextX, nextY, step_sfx, null);
-                await sleep(500);
+                
+                //Animation
+                updateRobotSprite(1); 
+                await sleep(200);     
+
+                updateRobotSprite(2); 
+                await sleep(200);     
+
+                updateRobotSprite(0); 
+                await sleep(100);     
+                //Animation end
             }
         } 
                 
@@ -164,7 +176,7 @@ const firstCommandBlock = startBlock.getNextBlock();
                 
                 currentLevel++;
                     if (currentLevel < MapLevels.length) {
-                        loadLevel(currentLevel); // Loads the next map instantly!
+                        loadLevel(currentLevel);
                     } else {
                         alert("CONGRATULATIONS! You beat the entire game!");
                     }
@@ -181,6 +193,8 @@ const firstCommandBlock = startBlock.getNextBlock();
 // ==========================================
 // EXTRA FUNCTION
 // ==========================================
+
+
 //Reset robot position
 function resetRobot() {
     robot = {...initLocation};
@@ -249,5 +263,18 @@ function loadLevel(levelIndex) {
 function drawRobot() {
     robotEl.style.left = `${robot.x * cellSize}px`;
     robotEl.style.top = `${robot.y * cellSize}px`;
-    robotEl.style.transform = `rotate(${robot.direction}deg)`;
+    updateRobotSprite();
+}
+
+function updateRobotSprite(frame = 0) {
+    let currentDir = ((robot.direction % 360) + 360) % 360; 
+    
+    let facing = "South"; // Default
+    if (currentDir === 0) facing = "North";
+    if (currentDir === 90) facing = "East";
+    if (currentDir === 180) facing = "South";
+    if (currentDir === 270) facing = "West";
+
+    // Now it swaps the direction AND the animation frame!
+    robotEl.style.backgroundImage = `url('res/texture/Player/Robot_${facing}_${frame}.png')`;
 }
