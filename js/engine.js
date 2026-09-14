@@ -147,7 +147,7 @@ const firstCommandBlock = startBlock.getNextBlock();
                 if (nextX < 0 || nextX >= gridSize || nextY < 0 || nextY >= gridSize || levelData[nextY][nextX] === 4) {
                     hit_sfx.play();
                     setTimeout(() => {
-                        alert("BUMP! The robot hit a solid wall.");
+                        showModal(eventMessages.crash.title, eventMessages.crash.msg, eventMessages.crash.btnText);
                     }, 50)
                     return;  
                 }
@@ -155,7 +155,7 @@ const firstCommandBlock = startBlock.getNextBlock();
                     updateRobot(nextX, nextY, water_sfx, 'robot-drown')
                     await sleep(500);
                     setTimeout(() => {
-                        alert(" SPLASH! The robot drove into the floodwaters.");
+                        showModal(eventMessages.drown.title, eventMessages.drown.msg, eventMessages.drown.btnText);
                     }, 50)
                     return
                 }
@@ -177,19 +177,26 @@ const firstCommandBlock = startBlock.getNextBlock();
         else if (cmd.action === 'drop') {
             if (levelData[robot.y][robot.x] === 2) {
                 win_sfx.play();
-                setTimeout(() => {
-                    alert("SUCCESS! Supplies delivered!");
-                }, 50)
-                
                 currentLevel++;
                     if (currentLevel < MapLevels.length) {
-                        loadLevel(currentLevel);
+                        showModal(
+                            eventMessages.levelClear.title,
+                            eventMessages.levelClear.msg,
+                            eventMessages.levelClear.btnText,
+                            function() { loadLevel(currentLevel) }
+                        );
                     } else {
-                        alert("CONGRATULATIONS! You beat the entire game!");
+                        showModal(
+                            eventMessages.gameWin.title,
+                            eventMessages.gameWin.msg, 
+                            "",
+                            null,
+                            false
+                        )
                     }
 
             } else {
-                alert("Dropped in the wrong place!");
+                showModal(eventMessages.wrongDrop.title, eventMessages.wrongDrop.msg, eventMessages.wrongDrop.btnText);
                 return;
             }
         }
@@ -235,6 +242,9 @@ function updateRobot(targetX, targetY, sound, stateClass) {
 
 //Draw Map
 function loadLevel(levelIndex) {
+    workspace.clear();
+    Blockly.Xml.domToWorkspace(document.getElementById('startBlocks'), workspace);
+
     currentLevel = levelIndex;
     levelData = MapLevels[currentLevel].mapping;
     initLocation = MapLevels[currentLevel].initial;
@@ -298,11 +308,17 @@ function updateRobotSprite(frame = 0) {
 }
 
 //Popup Function
-function showModal(title, msg, btnText = 'Continue', onClose = null) {
+function showModal(title, msg, btnText = 'Continue', onClose = null, showBtn = true) {
   modalTitle.innerText = title;
   modalMsg.innerText = msg;
   modalBtn.innerText = btnText;
   onModalCloseCallback = onClose;
+
+  if(showBtn)
+    modalBtn.style.display = '';
+  else
+    modalBtn.style.display = 'none';
+
   modalEl.classList.remove('hidden');
 }
 

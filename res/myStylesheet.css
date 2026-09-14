@@ -146,20 +146,57 @@ body {
   display: none;
 }
 
+/* Keep your original .modal-overlay exactly the same */
+
 .modal-card {
   background: #1e2430;
   border: 3px solid #00b4d8;
   box-shadow: 0 0 20px rgba(0, 180, 216, 0.4);
   border-radius: 12px;
-  padding: 24px;
-  text-align: center;
+  padding: 32px; /* Bigger padding for a premium feel */
+  
+  /* The Size Upgrade */
+  width: 90%; 
+  max-width: 550px; /* Much wider than the old 320px */
+  
+  /* The Layout Upgrade */
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Automatically perfectly spaces every item inside */
   color: #f8f9fa;
-  width: 320px;
+}
+
+.modal-icon {
+  font-size: 48px; /* Slightly bigger icon */
+  text-align: center; /* Keep icon centered */
+  margin: 0;
+}
+
+#modal-title {
+  font-size: 26px;
+  text-align: center; /* Keep title centered */
+  margin: 0;
+  border-bottom: 2px solid rgba(0, 180, 216, 0.2); /* Adds a cool divider line */
+  padding-bottom: 12px;
+}
+
+#modal-message {
+  font-size: 16px;
+  text-align: left; /* Left-aligned is MUCH easier to read for long text */
+  line-height: 1.6; /* Adds breathing room between sentences */
+  margin: 0;
+  
+  /* The Overflow Safety Net */
+  max-height: 40vh; /* Limits height so it never goes off-screen */
+  overflow-y: auto; /* Adds a scrollbar ONLY if you write a massive paragraph */
+  padding-right: 10px;
 }
 
 #modal-btn {
-  margin-top: 16px;
-  padding: 10px 20px;
+  align-self: center; /* Centers the button perfectly at the bottom */
+  margin-top: 10px;
+  padding: 12px 40px; /* Wider, beefier button */
+  font-size: 16px;
   background: #00b4d8;
   color: #0b1118;
   font-weight: bold;
@@ -172,4 +209,17 @@ body {
 #modal-btn:hover {
   background: #90e0ef;
   transform: scale(1.05);
+}
+
+/* Custom Scrollbar for the text box (optional but looks awesome) */
+#modal-message::-webkit-scrollbar {
+  width: 6px;
+}
+#modal-message::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+#modal-message::-webkit-scrollbar-thumb {
+  background: #00b4d8;
+  border-radius: 4px;
 }

@@ -29,22 +29,70 @@ const tutoMsg_1 = [
     {
         texts : {
             title: "Step Block",
-            msg: "First, click the step block to move the robot in its facing direction.",
+            msg: "First, use the 'Step' block to move the robot in it's facing direction. Then use 'Drop Supply' at the camp to clear the level",
             btnText: "Okay"
+        }
+
+        
+    }
+];
+
+const tutoMsg_2 = [
+    {
+        texts : {
+            title: "Turn Block",
+            msg: "Use the 'Turn' block to rotate the robot before stepping. Select 90 degrees to turn right, or -90 degrees to turn left.",
+            btnText: "Got it!"
         }
     }
 ];
 
 // 3. LEVEL ENTRY TRIGGERS
 const levelMessages = [
-    // Level 0 (The First Level)
     {
         texts : {
             title: "HELP", 
-            msg: "Nyalau is in Danger!", 
+            msg: "Nyalau is in Danger! The flood has hit Nyalau and all the Emergency Camp is short of supply.", 
             btnText: "Next", 
-            // This waits for the click, then triggers the tutorial sequence!
             onClose: function() { playSequenceMessage(tutoMsg_1); }
+        }
+    },
+
+    {
+        texts : {
+            title: "Navigating Corners",
+            msg: "The path to the next survivor station isn't a straight line. If you only use the Step block, the robot will drive straight into the floodwaters!",
+            btnText: "Next",
+            onClose: function() { playSequenceMessage(tutoMsg_2); }
         }
     }
 ];
+
+// 4. GAME EVENT MESSAGES
+const eventMessages = {
+    drown: {
+        title: "System Failure!",
+        msg: "SPLASH! The robot drove into the deep floodwaters and short-circuited. We need to reset the system.",
+        btnText: "Reboot Robot"
+    },
+    crash: {
+        title: "Collision Detected!",
+        msg: "BUMP! The robot crashed into solid debris. Review your code and make sure the path is clear before moving.",
+        btnText: "Recalibrate Path"
+    },
+    wrongDrop: {
+        title: "Invalid Drop Zone",
+        msg: "You dropped the supplies in the wrong sector! The survivors are at the designated camp target.",
+        btnText: "Retrieve Supplies"
+    },
+    levelClear: {
+        title: "Supplies Delivered!",
+        msg: "Excellent work! The survivors at this station have received the emergency supplies. Ready for the next sector?",
+        btnText: "Next Sector"
+    },
+    gameWin: {
+        title: "Mission Accomplished!",
+        msg: "CONGRATULATIONS! You successfully navigated all flooded sectors and saved everyone at Nyalau Camp. Your programming skills saved the day!",
+        btnText: "Finish Game"
+    }
+};
