@@ -21,10 +21,12 @@ const modalBtn = document.getElementById('modal-btn');
 let onModalCloseCallback = null;
 
 //Sounds preload
-const step_sfx = new Audio('res/sfx/step_sounds.mp3');
-const water_sfx = new Audio('res/sfx/water_splash.mp3');
+const step_sfx = new Audio('res/sfx/step_sound.mp3');
+const jump_sfx = new Audio('res/sfx/jump_sound.mp3')
+const water_sfx = new Audio('res/sfx/water_sound.mp3');
 const win_sfx = new Audio('res/sfx/win_sound.mp3');
-const hit_sfx = new Audio('res/sfx/hit_sounds.mp3');
+const hit_sfx = new Audio('res/sfx/hit_sound.mp3');
+const wrong_sfx = new Audio('res/sfx/wrong_sound.mp3')
 
 let robot = initLocation;
 
@@ -64,11 +66,20 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null, "nextStatement": null, "colour": 285
 },
+// 4. Jump Block
+{
+    "type": "robot_jump",
+    "message0": "Jump over gap",
+    "previousStatement": null, 
+    "nextStatement": null, 
+    "colour": 160
+},
+
 {
     "type": "robot_drop",
     "message0": "Drop Supplies ",
     "previousStatement": null, "colour": 120
-    }
+}
     ]);
 
 const workspace = Blockly.inject('blocklyDiv', {
@@ -95,6 +106,7 @@ robotGenerator.scrub_ = function(block, code, opt_thisOnly){
 robotGenerator.forBlock['robot_start'] = (block) => '';
 robotGenerator.forBlock['robot_step'] = (block) => `queue.push({ action: 'step', value: ${block.getFieldValue('STEPS')} });\n`;
 robotGenerator.forBlock['robot_turn'] = (block) => `queue.push({ action: 'turn', value: ${block.getFieldValue('DIR')} });\n`;
+robotGenerator.forBlock['robot_jump'] = (block) => `queue.push({ action: 'jump', value: null });\n`;
 robotGenerator.forBlock['robot_drop'] = (block) => `queue.push({ action: 'drop', value: null });\n`;
 
 
@@ -146,17 +158,23 @@ const firstCommandBlock = startBlock.getNextBlock();
                         
                 if (nextX < 0 || nextX >= gridSize || nextY < 0 || nextY >= gridSize || levelData[nextY][nextX] === 4) {
                     hit_sfx.play();
-                    setTimeout(() => {
-                        showModal(eventMessages.crash.title, eventMessages.crash.msg, eventMessages.crash.btnText);
-                    }, 50)
+                    showModal(
+                        eventMessages.crash.title, 
+                        eventMessages.crash.msg, 
+                        eventMessages.crash.btnText,
+                        function(){ resetRobot() }
+                    );
                     return;  
                 }
                 if (levelData[nextY][nextX] === 0) {
                     updateRobot(nextX, nextY, water_sfx, 'robot-drown')
                     await sleep(500);
-                    setTimeout(() => {
-                        showModal(eventMessages.drown.title, eventMessages.drown.msg, eventMessages.drown.btnText);
-                    }, 50)
+                    showModal(
+                        eventMessages.drown.title, 
+                        eventMessages.drown.msg, 
+                        eventMessages.drown.btnText,
+                        function(){ resetRobot() }
+                    );
                     return
                 }
                 updateRobot(nextX, nextY, step_sfx, null);
@@ -173,6 +191,49 @@ const firstCommandBlock = startBlock.getNextBlock();
                 //Animation end
             }
         } 
+
+        else if (cmd.action === 'jump') {
+            const rad = robot.direction * (Math.PI / 180);
+            const landX = robot.x + Math.round(Math.sin(rad) * 2);
+            const landY = robot.y - Math.round(Math.cos(rad) * 2);
+                    
+            // Boundary & Wall check
+            if (landX < 0 || landX >= gridSize || landY < 0 || landY >= gridSize || levelData[landY][landX] === 4) {
+                hit_sfx.play();
+                showModal(eventMessages.crash.title, eventMessages.crash.msg, eventMessages.crash.btnText, function(){ resetRobot() });
+                return;  
+            }
+            
+            // Give the jump a slightly longer, smoother glide
+            robotEl.style.transition = 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+            
+            // Trigger jump animation + move coordinates
+            jump_sfx.play();
+            updateRobot(landX, landY, step_sfx, 'robot-jump');
+            
+            // Wait for the jump arc to finish
+            await sleep(600);
+            
+            // Clean up jump class & restore normal walk transition
+            robotEl.classList.remove('robot-jump');
+            robotEl.style.transition = 'all 0.4s ease-in-out';
+            
+            // Check if the robot landed in water
+            if (levelData[landY][landX] === 0) {
+                water_sfx.play();
+                updateRobot(landX, landY, water_sfx, 'robot-drown');
+                await sleep(500);
+                showModal(
+                    eventMessages.drown.title, 
+                    eventMessages.drown.msg, 
+                    eventMessages.drown.btnText,
+                    function(){ resetRobot() }
+                );
+                return;
+            }
+
+            await sleep(150); // Small pause after landing
+        }
                 
         else if (cmd.action === 'drop') {
             if (levelData[robot.y][robot.x] === 2) {
@@ -196,6 +257,7 @@ const firstCommandBlock = startBlock.getNextBlock();
                     }
 
             } else {
+                wrong_sfx.play();
                 showModal(eventMessages.wrongDrop.title, eventMessages.wrongDrop.msg, eventMessages.wrongDrop.btnText);
                 return;
             }

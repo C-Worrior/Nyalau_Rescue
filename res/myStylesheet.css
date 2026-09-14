@@ -99,6 +99,24 @@ body {
     opacity: 0.4; /* Makes it look submerged */
 }
 
+@keyframes jumpArc {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    /* Rise into the air and scale up */
+    transform: translateY(-28px) scale(1.2); 
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.robot-jump {
+  animation: jumpArc 0.6s ease-in-out;
+  z-index: 10; /* Ensures the robot leaps ON TOP of water and debris */
+}
+
 @media (max-width: 1024px) {
     #app-container {
         flex-direction: column; /* Stacks the game on top, code on bottom */
