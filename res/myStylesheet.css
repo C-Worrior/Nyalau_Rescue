@@ -127,3 +127,49 @@ body {
         transform: scale(0.45); /* Scales even smaller for narrow phones */
     }
 }
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(10, 15, 25, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: #1e2430;
+  border: 3px solid #00b4d8;
+  box-shadow: 0 0 20px rgba(0, 180, 216, 0.4);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #f8f9fa;
+  width: 320px;
+}
+
+#modal-btn {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: #00b4d8;
+  color: #0b1118;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+#modal-btn:hover {
+  background: #90e0ef;
+  transform: scale(1.05);
+}

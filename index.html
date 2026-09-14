@@ -3,7 +3,7 @@
 <head>
     <title>Flood Rescue Robot</title>
     <!-- 1. Load Blockly -->
-    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="js/blockly.min.js"></script>
     
     <!-- 2. CSS Styling -->
      <link rel="stylesheet" href="res/myStylesheet.css" type="text/css">
@@ -14,7 +14,6 @@
 <body>
 
     <div id="app-container">
-
         <div id="controls-section">
             <div id="blocklyDiv"></div>
             <button class="run-btn" onclick="runCode()">Run Program</button>
@@ -25,7 +24,13 @@
                 <div id="robot"></div>
             </div>
         </div>
-        
+        <div id="game-modal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <h2 id="modal-title">Mission Brief</h2>
+                <p id="modal-message">Deliver the emergency supplies to the survivor station.</p>
+                <button id="modal-btn" onclick="closeModal()">Start Delivery</button>
+            </div>
+        </div>
     </div>
 
     <!-- Hidden Toolbox XML for Blockly -->
@@ -41,6 +46,7 @@
 
     <!-- 3. JavaScript Logic -->
     <script src="js/level.js"></script>
+    <script src="js/message.js"></script>
     <script src="js/engine.js"></script>
 </body>
 </html>

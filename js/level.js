@@ -13,7 +13,8 @@ const MapLevels = [
             [0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0]
         ],
-        initial : {x: 1, y: 2, direction: 90}
+        initial : {x: 1, y: 2, direction: 90},
+        message : true
     },
     {
         mapping : [
@@ -28,7 +29,8 @@ const MapLevels = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ],
-        initial : {x: 1, y: 2, direction: 90}
+        initial : {x: 1, y: 2, direction: 90},
+        message : false
     }
 
 ]

@@ -12,6 +12,14 @@ let initLocation;
 let gridSize;
 let cellSize;
 
+//Popup box element
+const modalEl = document.getElementById('game-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalMsg = document.getElementById('modal-message');
+const modalBtn = document.getElementById('modal-btn');
+
+let onModalCloseCallback = null;
+
 //Sounds preload
 const step_sfx = new Audio('res/sfx/step_sounds.mp3');
 const water_sfx = new Audio('res/sfx/water_splash.mp3');
@@ -19,7 +27,6 @@ const win_sfx = new Audio('res/sfx/win_sound.mp3');
 const hit_sfx = new Audio('res/sfx/hit_sounds.mp3');
 
 let robot = initLocation;
-loadLevel(0);
 
 // ==========================================
 // BLOCKLY SETUP & DEFINITIONS
@@ -231,6 +238,7 @@ function loadLevel(levelIndex) {
     currentLevel = levelIndex;
     levelData = MapLevels[currentLevel].mapping;
     initLocation = MapLevels[currentLevel].initial;
+    messageToShow = MapLevels[currentLevel].message;
     
     gridSize = levelData.length;
     cellSize = board.offsetWidth / gridSize;
@@ -257,6 +265,16 @@ function loadLevel(levelIndex) {
         }
     }
     resetRobot();
+
+    if(messageToShow){
+        levelMsg = levelMessages[currentLevel].texts
+        showModal(
+            levelMsg.title,
+            levelMsg.msg,
+            levelMsg.btnText,
+            levelMsg.onClose
+        )
+    }
 }
 
 //Draw Robot into map
@@ -278,3 +296,24 @@ function updateRobotSprite(frame = 0) {
     // Now it swaps the direction AND the animation frame!
     robotEl.style.backgroundImage = `url('res/texture/Player/Robot_${facing}_${frame}.png')`;
 }
+
+//Popup Function
+function showModal(title, msg, btnText = 'Continue', onClose = null) {
+  modalTitle.innerText = title;
+  modalMsg.innerText = msg;
+  modalBtn.innerText = btnText;
+  onModalCloseCallback = onClose;
+  modalEl.classList.remove('hidden');
+}
+
+function closeModal() {
+    modalEl.classList.add('hidden');
+    
+    if (onModalCloseCallback) {
+        const tempCallback = onModalCloseCallback; 
+        onModalCloseCallback = null; 
+        tempCallback(); 
+    }
+}
+
+loadLevel(0);
