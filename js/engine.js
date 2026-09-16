@@ -1,12 +1,9 @@
-// ==========================================
 // DRAW MAP ON SCREEN
-// ==========================================
-
-//Get level information
 const board = document.getElementById('game-board');
 const robotEl = document.getElementById('robot');
 
-let currentLevel = 0;
+let currentLevel = parseInt(sessionStorage.getItem('_level')) || 0;
+let runCount = parseInt(sessionStorage.getItem('_runs')) || 0;
 let levelData;
 let initLocation;
 let gridSize;
@@ -30,28 +27,26 @@ const wrong_sfx = new Audio('res/sfx/wrong_sound.mp3')
 
 let robot = initLocation;
 
-// ==========================================
 // BLOCKLY SETUP & DEFINITIONS
-// ==========================================
 Blockly.defineBlocksWithJsonArray([
 // 1. New START Block
 {
     "type": "robot_start",
-    "message0": "START HERE",
+    "message0": "MULA DI SINI",
     "nextStatement": null, // Blocks can snap below it, but not above it
     "colour": 0
 },
 // 2. Step Block
 {
     "type": "robot_step",
-    "message0": "Step %1 spaces",
+    "message0": "Langkah %1 petak",
     "args0": [{"type": "field_number", "name": "STEPS", "value": 1, "min": 1, "precision": 1}],
     "previousStatement": null, "nextStatement": null, "colour": 230
 },
 // 3. Turn Block
 {
     "type": "robot_turn",
-    "message0": "Turn %1 degrees",
+    "message0": "Pusing %1 darjah",
     "args0": [{
             "type": "field_dropdown",
             "name": "DIR",
@@ -69,15 +64,27 @@ Blockly.defineBlocksWithJsonArray([
 // 4. Jump Block
 {
     "type": "robot_jump",
-    "message0": "Jump over gap",
+    "message0": "Lompat halangan",
     "previousStatement": null, 
     "nextStatement": null, 
     "colour": 160
 },
 
+// 5. Repeat
+{
+    "type": "robot_repeat",
+    "message0": "Ulang %1 kali",
+    "args0": [{"type": "field_number", "name": "TIMES", "value": 2, "min": 2, "precision": 1}],
+    "message1": "buat %1",
+    "args1": [{"type": "input_statement", "name": "DO"}],
+    "previousStatement": null, 
+    "nextStatement": null, 
+    "colour": 120
+},
+
 {
     "type": "robot_drop",
-    "message0": "Drop Supplies ",
+    "message0": "Turunkan bekalan",
     "previousStatement": null, "colour": 120
 }
     ]);
@@ -108,6 +115,18 @@ robotGenerator.forBlock['robot_step'] = (block) => `queue.push({ action: 'step',
 robotGenerator.forBlock['robot_turn'] = (block) => `queue.push({ action: 'turn', value: ${block.getFieldValue('DIR')} });\n`;
 robotGenerator.forBlock['robot_jump'] = (block) => `queue.push({ action: 'jump', value: null });\n`;
 robotGenerator.forBlock['robot_drop'] = (block) => `queue.push({ action: 'drop', value: null });\n`;
+robotGenerator.forBlock['robot_repeat'] = function(block) {
+    const repeats = block.getFieldValue('TIMES');
+    // Grab all the code from the blocks snapped INSIDE the loop
+    const branch = robotGenerator.statementToCode(block, 'DO'); 
+    
+    let code = '';
+    // Duplicate that code based on the number of repeats!
+    for (let i = 0; i < repeats; i++) {
+        code += branch;
+    }
+    return code;
+};
 
 
 // ==========================================
@@ -132,6 +151,10 @@ const firstCommandBlock = startBlock.getNextBlock();
     await sleep(500);
 
     let commandQueue = [];
+
+    runCount++;
+    updateHUD();
+    sessionStorage.setItem('_runs', runCount);
             
     const codeString = robotGenerator.blockToCode(firstCommandBlock);
     console.log("Compiled Code: \n", codeString)
@@ -204,18 +227,24 @@ const firstCommandBlock = startBlock.getNextBlock();
                 return;  
             }
             
-            // Give the jump a slightly longer, smoother glide
-            robotEl.style.transition = 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+            // 1. Give it a slightly longer straight glide (since it covers 2 tiles)
+            robotEl.style.transition = 'all 0.5s ease-in-out';
             
-            // Trigger jump animation + move coordinates
+            // 2. Play the jump sound, and update coordinates (NO 'robot-jump' CSS class!)
             jump_sfx.play();
-            updateRobot(landX, landY, step_sfx, 'robot-jump');
+            updateRobot(landX, landY, null, null); 
             
-            // Wait for the jump arc to finish
-            await sleep(600);
+            // 3. Play the exact same normal walking animation frames!
+            updateRobotSprite(1); 
+            await sleep(200);     
+
+            updateRobotSprite(2); 
+            await sleep(200);     
+
+            updateRobotSprite(0); 
+            await sleep(100);     
             
-            // Clean up jump class & restore normal walk transition
-            robotEl.classList.remove('robot-jump');
+            // Restore standard transition speed for normal steps
             robotEl.style.transition = 'all 0.4s ease-in-out';
             
             // Check if the robot landed in water
@@ -246,6 +275,7 @@ const firstCommandBlock = startBlock.getNextBlock();
                             eventMessages.levelClear.btnText,
                             function() { loadLevel(currentLevel) }
                         );
+                        sessionStorage.setItem('_level', currentLevel);
                     } else {
                         showModal(
                             eventMessages.gameWin.title,
@@ -264,6 +294,8 @@ const firstCommandBlock = startBlock.getNextBlock();
         }
     }
 }
+
+loadLevel(currentLevel);
 
 
 // ==========================================
@@ -329,14 +361,22 @@ function loadLevel(levelIndex) {
             const cell = document.createElement('div');
             cell.className = 'cell';
             if (levelData[y][x] === 0) cell.classList.add('water');
-            if (levelData[y][x] === 1) cell.classList.add('path');
             if (levelData[y][x] === 2) cell.classList.add('target');
             if (levelData[y][x] === 4) cell.classList.add('wall');
+
+            //Path
+            if (levelData[y][x] === 1) cell.classList.add('path-horiz');
+            if (levelData[y][x] === 10) cell.classList.add('path-vert');
+            if (levelData[y][x] === 11) cell.classList.add('corner-1');
+            if (levelData[y][x] === 12) cell.classList.add('corner-2');
+            if (levelData[y][x] === 13) cell.classList.add('corner-3');
+            if (levelData[y][x] === 14) cell.classList.add('corner-4');
 
             board.insertBefore(cell, robotEl); 
         }
     }
     resetRobot();
+    updateHUD()
 
     if(messageToShow){
         levelMsg = levelMessages[currentLevel].texts
@@ -394,4 +434,71 @@ function closeModal() {
     }
 }
 
-loadLevel(0);
+//HUI update
+function updateHUD() {
+    const levelDisplay = document.getElementById('hud-level');
+    const runsDisplay = document.getElementById('hud-runs');
+    
+    if (levelDisplay) levelDisplay.innerText = currentLevel + 1; 
+    if (runsDisplay) runsDisplay.innerText = runCount;
+}
+
+//ResetGame
+function resetGame(){
+    sessionStorage.clear();
+}
+
+//Debug Function
+//Draw Map
+function goLevel(levelIndex) {
+    workspace.clear();
+    Blockly.Xml.domToWorkspace(document.getElementById('startBlocks'), workspace);
+
+    levelData = MapLevels[levelIndex - 1].mapping;
+    initLocation = MapLevels[levelIndex - 1].initial;
+    messageToShow = MapLevels[levelIndex - 1].message;
+    
+    gridSize = levelData.length;
+    cellSize = board.offsetWidth / gridSize;
+
+    robotEl.style.width = `${cellSize}px`;
+    robotEl.style.height = `${cellSize}px`;
+
+    board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+    board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+
+    const oldCells = board.querySelectorAll('.cell');
+    oldCells.forEach(cell => cell.remove());
+
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            if (levelData[y][x] === 0) cell.classList.add('water');
+            if (levelData[y][x] === 2) cell.classList.add('target');
+            if (levelData[y][x] === 4) cell.classList.add('wall');
+
+            //Path
+            if (levelData[y][x] === 1) cell.classList.add('path-horiz');
+            if (levelData[y][x] === 10) cell.classList.add('path-vert');
+            if (levelData[y][x] === 11) cell.classList.add('corner-1');
+            if (levelData[y][x] === 12) cell.classList.add('corner-2');
+            if (levelData[y][x] === 13) cell.classList.add('corner-3');
+            if (levelData[y][x] === 14) cell.classList.add('corner-4');
+
+            board.insertBefore(cell, robotEl); 
+        }
+    }
+    resetRobot();
+    updateHUD();
+
+    if(messageToShow){
+        levelMsg = levelMessages[levelIndex - 1].texts
+        showModal(
+            levelMsg.title,
+            levelMsg.msg,
+            levelMsg.btnText,
+            levelMsg.onClose
+        )
+    }
+}

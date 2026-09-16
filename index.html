@@ -16,11 +16,19 @@
     <div id="app-container">
         <div id="controls-section">
             <div id="blocklyDiv"></div>
+            <div style="position: absolute; bottom: 15px; left: 15px; z-index: 10; font-size: 14px; font-weight: bold; color: #1e2430; background: rgba(255, 255, 255, 0.8); padding: 5px 10px; border-radius: 6px; pointer-events: none;">
+                Runs: <span id="hud-runs">0</span>
+            </div>
             <button class="run-btn" onclick="runCode()">Run Program</button>
         </div>
 
         <div id="game-section">
-            <div id="game-board">
+            <div id="game-board" style="position: relative;">
+    
+                <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10; font-size: 16px; font-weight: bold; color: white; background: rgba(0, 0, 0, 0.6); padding: 6px 16px; border-radius: 20px; text-shadow: 1px 1px 2px black;">
+                    Sektor <span id="hud-level">1</span>
+                </div>
+
                 <div id="robot"></div>
             </div>
         </div>
@@ -38,7 +46,9 @@
         <block type="robot_step"></block>
         <block type="robot_turn"></block>
         <block type="robot_jump"></block>
+        <block type="robot_repeat"></block>
         <block type="robot_drop"></block>
+        
     </xml>
 
     <xml id="startBlocks" style="display: none">

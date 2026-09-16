@@ -71,19 +71,33 @@ body {
 }
 
 /* Map Textures */
-.water { background: #3b82f6; }
-.path { background: #d97706; }
-.target { background: #22c55e; }
+.water { background-image: url('../res/texture/environment/water.png'); background-size: cover; }
 .wall { background: #525252; border: 2px solid #333; }
+
+.target {
+    background-image: url('../res/texture/environment/Camp.png'), url('../res/texture/environment/path_3.png');
+    background-size: 125%, cover; 
+    background-position: center 70%, center; 
+    background-repeat: no-repeat, no-repeat;
+    z-index: 5; 
+}
+
+/*Path*/
+.path-horiz { background-image: url('../res/texture/environment/path_1.png'); background-size: cover; }
+.path-vert { background-image: url('../res/texture/environment/path_2.png'); background-size: cover; }
+.corner-1 { background-image: url('../res/texture/environment/Corner_1.png'); background-size: cover; }
+.corner-2 { background-image: url('../res/texture/environment/Corner_2.png'); background-size: cover; }
+.corner-3 { background-image: url('../res/texture/environment/Corner_3.png'); background-size: cover; }
+.corner-4 { background-image: url('../res/texture/environment/Corner_4.png'); background-size: cover; }
 
 #robot {
     position: absolute;
+    margin: -15px;
     z-index: 10;
     background-image: url('../res/texture/Player/Robot_South_0.png');
-    background-size: 110%;
+    background-size: 75%;
     background-repeat: no-repeat;
     background-position: center;
-    image-rendering: pixelated;
     transition: top 0.4s ease-in-out, left 0.4s ease-in-out;
 }
 
@@ -99,22 +113,10 @@ body {
     opacity: 0.4; /* Makes it look submerged */
 }
 
-@keyframes jumpArc {
-  0% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    /* Rise into the air and scale up */
-    transform: translateY(-28px) scale(1.2); 
-  }
-  100% {
-    transform: translateY(0) scale(1);
-  }
-}
 
-.robot-jump {
-  animation: jumpArc 0.6s ease-in-out;
-  z-index: 10; /* Ensures the robot leaps ON TOP of water and debris */
+
+#robot,.cell{
+  image-rendering: pixelated;
 }
 
 @media (max-width: 1024px) {
